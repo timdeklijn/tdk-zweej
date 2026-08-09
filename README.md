@@ -57,16 +57,24 @@ To install fresh on bare metal, use the bootable installer ISO:
 
 1. In your repo on GitHub, go to **Actions → build-iso → Run workflow**
    (or just push a `v1.0.0`-style tag — that also triggers it).
-2. When it finishes, grab `tdk-zweej.iso` from the **Releases** page
-   it publishes to.
-3. Flash it to a USB drive with
+2. When it finishes, download all `tdk-zweej.iso.part-*` files and
+   `tdk-zweej.iso.sha256` from the **Releases** page it publishes to. GitHub
+   limits individual release assets to 2 GiB, so the ISO is published in parts.
+3. Reassemble and verify the ISO:
+
+   ```bash
+   cat tdk-zweej.iso.part-* > tdk-zweej.iso
+   sha256sum --check tdk-zweej.iso.sha256
+   ```
+
+4. Flash it to a USB drive with
    [Fedora Media Writer](https://www.fedoraproject.org/en/workstation/download)
    (or `dd`) and boot it. It's a **netinstaller** — small download, boots
    Anaconda, and pulls your actual image from `ghcr.io` over the network
    during install — so the ISO stays tiny and always installs whatever
    you point it at, rather than needing to be rebuilt every time your
    image updates.
-4. Walk through the normal Anaconda install steps it presents.
+5. Walk through the normal Anaconda install steps it presents.
 
 Prefer to build it locally instead of via Actions? The single command is:
 

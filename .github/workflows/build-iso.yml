@@ -32,6 +32,9 @@ jobs:
       - name: Checksum
         run: sha256sum tdk-zweej.iso > tdk-zweej.iso.sha256
 
+      - name: Split ISO for GitHub Releases
+        run: split --bytes=1900M --numeric-suffixes=3 --suffix-length=3 tdk-zweej.iso tdk-zweej.iso.part-
+
       - name: Publish as a GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -39,5 +42,5 @@ jobs:
           name: Installer ISO (build ${{ github.run_number }})
           make_latest: true
           files: |
-            tdk-zweej.iso
+            tdk-zweej.iso.part-*
             tdk-zweej.iso.sha256
