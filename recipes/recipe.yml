@@ -58,7 +58,8 @@ modules:
   - type: dnf
     repos:
       files:
-        - https://terra.fyralabs.com/terra.repo
+        # Terra's repo file is maintained separately from its package host.
+        - https://raw.githubusercontent.com/terrapkg/subatomic-repos/main/terra.repo
     install:
       skip-unavailable: true
       packages:
