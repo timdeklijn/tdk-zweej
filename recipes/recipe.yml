@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 
-name: my-sway-distro
+name: tdk-zweej
 # Change this to your own image name
 description: My personal atomic Linux distro — Sway + Noctalia
 
@@ -24,12 +24,9 @@ modules:
         - swayidle
         - foot                     # fallback terminal
         - xdg-desktop-portal-wlr
-        - xdg-desktop-portal-gtk
-        - polkit
-        - polkit-gnome
+        - polkit-kde-agent-1       # replaces polkit-gnome (removed in fc44)
         - brightnessctl
         - playerctl
-        - wl-clipboard
         - grim
         - slurp
         - NetworkManager-tui

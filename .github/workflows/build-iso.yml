@@ -26,11 +26,11 @@ jobs:
       - name: Generate ISO from the published image
         run: |
           sudo bluebuild generate-iso \
-            --iso-name my-sway-distro.iso \
-            image ghcr.io/${{ github.repository_owner }}/my-sway-distro:latest
+            --iso-name tdk-zweej.iso \
+            image ghcr.io/${{ github.repository_owner }}/tdk-zweej:latest
 
       - name: Checksum
-        run: sha256sum my-sway-distro.iso > my-sway-distro.iso.sha256
+        run: sha256sum tdk-zweej.iso > tdk-zweej.iso.sha256
 
       - name: Publish as a GitHub Release
         uses: softprops/action-gh-release@v2
@@ -39,5 +39,5 @@ jobs:
           name: Installer ISO (build ${{ github.run_number }})
           make_latest: true
           files: |
-            my-sway-distro.iso
-            my-sway-distro.iso.sha256
+            tdk-zweej.iso
+            tdk-zweej.iso.sha256

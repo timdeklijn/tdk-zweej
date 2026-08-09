@@ -1,4 +1,4 @@
-# my-sway-distro
+# tdk-zweej
 
 A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), based on
 [uBlue's `base-main`](https://github.com/ublue-os/main) with Sway + Noctalia bolted on top.
@@ -27,7 +27,7 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 1. Click **"Use this template"** (or just clone this scaffold) into your own GitHub repo.
 2. Rename the image in `recipes/recipe.yml` (the `name:` field) — this becomes
    `ghcr.io/<your-github-username>/<name>`. Do a find-and-replace for
-   `my-sway-distro` across `.github/workflows/build-iso.yml` and this
+   `tdk-zweej` across `.github/workflows/build-iso.yml` and this
    README too, since those reference the image name directly.
 3. Set up [container signing with cosign](https://blue-build.org/how-to/cosign/):
    ```
@@ -57,7 +57,7 @@ To install fresh on bare metal, use the bootable installer ISO:
 
 1. In your repo on GitHub, go to **Actions → build-iso → Run workflow**
    (or just push a `v1.0.0`-style tag — that also triggers it).
-2. When it finishes, grab `my-sway-distro.iso` from the **Releases** page
+2. When it finishes, grab `tdk-zweej.iso` from the **Releases** page
    it publishes to.
 3. Flash it to a USB drive with
    [Fedora Media Writer](https://www.fedoraproject.org/en/workstation/download)
@@ -71,8 +71,8 @@ To install fresh on bare metal, use the bootable installer ISO:
 Prefer to build it locally instead of via Actions? The single command is:
 
 ```bash
-sudo bluebuild generate-iso --iso-name my-sway-distro.iso \
-  image ghcr.io/<you>/my-sway-distro:latest
+sudo bluebuild generate-iso --iso-name tdk-zweej.iso \
+  image ghcr.io/<you>/tdk-zweej:latest
 ```
 
 See the [ISO how-to guide](https://blue-build.org/how-to/generate-iso/) for details —
