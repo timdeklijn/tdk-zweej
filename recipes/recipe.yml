@@ -78,6 +78,7 @@ modules:
         - https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
     install:
       packages:
+        - liberation-fonts-all  # provides the legacy liberation-fonts dependency
         - repo: brave-browser
           packages:
             - brave-browser
