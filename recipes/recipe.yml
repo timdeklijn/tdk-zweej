@@ -47,7 +47,7 @@ modules:
       - scope: system
         install:
           - com.valvesoftware.Steam
-          - org.signal.Desktop
+          - org.signal.Signal
           - com.slack.Slack
 
   # ---------------------------------------------------------------------
