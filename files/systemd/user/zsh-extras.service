@@ -1,0 +1,12 @@
+[Unit]
+Description=Set up zsh extras (direnv hook, starship init line, atuin)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/setup-zsh-extras.sh
+
+[Install]
+WantedBy=default.target

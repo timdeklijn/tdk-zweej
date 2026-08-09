@@ -1,0 +1,43 @@
+name: build-iso
+on:
+  # Manual trigger from the Actions tab — this doesn't need to run on
+  # every daily image build, since the ISO is a *netinstaller*: it just
+  # boots Anaconda and pulls whatever tag you point it at over the
+  # network at install time, it doesn't embed the OS itself.
+  workflow_dispatch:
+  # Optional: also build one whenever you push a version tag, e.g. v1.0.0
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-iso:
+    name: Build installer ISO
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to publish the release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install BlueBuild CLI
+        run: docker run --pull always --rm ghcr.io/blue-build/cli:latest-installer | bash
+
+      - name: Generate ISO from the published image
+        run: |
+          sudo bluebuild generate-iso \
+            --iso-name my-sway-distro.iso \
+            image ghcr.io/${{ github.repository_owner }}/my-sway-distro:latest
+
+      - name: Checksum
+        run: sha256sum my-sway-distro.iso > my-sway-distro.iso.sha256
+
+      - name: Publish as a GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: iso-${{ github.run_number }}
+          name: Installer ISO (build ${{ github.run_number }})
+          make_latest: true
+          files: |
+            my-sway-distro.iso
+            my-sway-distro.iso.sha256

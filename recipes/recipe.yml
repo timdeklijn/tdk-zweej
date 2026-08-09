@@ -1,45 +1,206 @@
----
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
-# image will be published to ghcr.io/<user>/<name>
-name: template
-# description will be included in the image's metadata
-description: This is my personal OS image.
 
-# the base image to build on top of (FROM) and the version tag to use
-base-image: ghcr.io/ublue-os/silverblue-main
-image-version: latest # You can pin to a specific version of Fedora as well
+name: my-sway-distro
+# Change this to your own image name
+description: My personal atomic Linux distro — Sway + Noctalia
 
-# module configuration, executed in order
-# you can include multiple instances of the same module
+# uBlue's dedicated sway-atomic image was deprecated/removed, so we build
+# on the plain "base" image (no desktop environment) and add everything
+# ourselves. This still gets you uBlue's codecs, hardware accel, and
+# distrobox/toolbx additions on top of stock Fedora Atomic.
+base-image: ghcr.io/ublue-os/base-main
+image-version: latest
+
 modules:
-  - type: files
-    files:
-      - source: system
-        destination: / # copies files/system/* (* means everything inside it) into your image's root folder /
+  # ---------------------------------------------------------------------
+  # Sway + minimal Wayland session essentials
+  # ---------------------------------------------------------------------
+  - type: dnf
+    install:
+      packages:
+        - sway
+        - swaybg
+        - swaylock
+        - swayidle
+        - foot                     # fallback terminal
+        - xdg-desktop-portal-wlr
+        - xdg-desktop-portal-gtk
+        - polkit
+        - polkit-gnome
+        - brightnessctl
+        - playerctl
+        - wl-clipboard
+        - grim
+        - slurp
+        - NetworkManager-tui
+        - sddm                     # display manager (Noctalia has no greeter yet)
+        - qt6-qtsvg
+        - qt6-qtmultimedia
+        - qt6-qt5compat
 
+  # ---------------------------------------------------------------------
+  # Steam + Signal + Slack — via Flatpak. uBlue base images already ship
+  # the system Flathub remote, so this just adds them to it (installed +
+  # updated on boot, not tied to the OS image build).
+  # Note: com.slack.Slack is community-packaged on Flathub, not published
+  # directly by Slack.
+  # ---------------------------------------------------------------------
+  - type: default-flatpaks
+    configurations:
+      - scope: system
+        install:
+          - com.valvesoftware.Steam
+          - org.signal.Desktop
+          - com.slack.Slack
+
+  # ---------------------------------------------------------------------
+  # Noctalia shell (Quickshell-based) + Ghostty, via Terra
+  # (Zed is intentionally NOT baked in here — see the zed-installer.service
+  # user unit below, which runs Zed's own install script on first login)
+  # ---------------------------------------------------------------------
+  - type: dnf
+    repos:
+      files:
+        - https://terra.fyralabs.com/terra.repo
+    install:
+      skip-unavailable: true
+      packages:
+        - noctalia-shell   # pulls in quickshell as a dependency
+        - ghostty
+
+  # ---------------------------------------------------------------------
+  # Brave Browser
+  # ---------------------------------------------------------------------
+  - type: dnf
+    repos:
+      cleanup: true
+      files:
+        - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
+      keys:
+        - https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
+    install:
+      packages:
+        - repo: brave-browser
+          packages:
+            - brave-browser
+
+  # ---------------------------------------------------------------------
+  # 1Password (desktop app + CLI) — same repo serves both packages
+  # ---------------------------------------------------------------------
+  - type: dnf
+    repos:
+      cleanup: true
+      files:
+        - 1password.repo   # from ./files/dnf/1password.repo in this repo
+      keys:
+        - https://downloads.1password.com/linux/keys/1password.asc
+    install:
+      packages:
+        - 1password
+        - 1password-cli
+
+  # ---------------------------------------------------------------------
+  # Dropbox — client + tray icon (no nautilus needed to run it; that
+  # naming is just legacy upstream). Autostarted via dropbox.service
+  # below since the RPM only provides the CLI wrapper, not an autostart.
+  # ---------------------------------------------------------------------
+  - type: dnf
+    repos:
+      nonfree: rpmfusion
+    install:
+      packages:
+        - nautilus-dropbox
+
+  # ---------------------------------------------------------------------
+  # zsh — set as the default login shell for real user accounts via
+  # set-default-shell-zsh.service (see files/systemd/system/), since
+  # neither rebase-in-place nor a fresh Anaconda install reliably read
+  # /etc/default/useradd for this.
+  # ---------------------------------------------------------------------
+  - type: dnf
+    install:
+      packages:
+        - zsh
+
+  # ---------------------------------------------------------------------
+  # direnv (plain Fedora package) + starship prompt (via COPR — Fedora
+  # dropped its own starship package after F36, atim/starship is the
+  # standard place to get it now)
+  # ---------------------------------------------------------------------
+  - type: dnf
+    install:
+      packages:
+        - direnv
   - type: dnf
     repos:
       copr:
         - atim/starship
     install:
       packages:
-        - micro
         - starship
-    remove:
+
+  # ---------------------------------------------------------------------
+  # Tailscale
+  # ---------------------------------------------------------------------
+  - type: dnf
+    repos:
+      cleanup: true
+      files:
+        - https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+    install:
       packages:
-        # example: removing firefox (in favor of the flatpak)
-        # "firefox" is the main package, "firefox-langpacks" is a dependency
-        - firefox
-        - firefox-langpacks # also remove firefox dependency (not required for all packages, this is a special case)
+        - tailscale
 
-  - type: default-flatpaks
-    configurations:
-      - notify: true # Send notification after install/uninstall is finished (true/false)
-        scope: system
-        # If no repo information is specified, Flathub will be used by default
-        install: # system flatpaks we want all users to have and not remove
-          - org.mozilla.firefox
-          - org.gnome.Loupe
-      - scope: user # Also add Flathub user repo, but no user packages
+  # ---------------------------------------------------------------------
+  # uupd — Universal Blue's unified updater (OS image + Flatpak, in one
+  # coordinated pass triggered by uupd.timer). Not shipped by base-main,
+  # so it comes from uBlue's own package COPR.
+  # ---------------------------------------------------------------------
+  - type: dnf
+    repos:
+      copr:
+        - ublue-os/packages
+    install:
+      packages:
+        - uupd
 
-  - type: signing # this sets up the proper policy & signing files for signed images to work fully
+  # ---------------------------------------------------------------------
+  # Config overrides shipped to /etc (see files/system/)
+  # - rpm-ostreed.conf: turn off rpm-ostreed's own AutomaticUpdatePolicy
+  #   so it doesn't race/duplicate with uupd's own staging of OS updates
+  # ---------------------------------------------------------------------
+  - type: files
+    files:
+      - source: system
+        destination: /
+
+  # ---------------------------------------------------------------------
+  # Enable services
+  # (The determinate-nix-installer.service, zed-installer.service,
+  # dropbox.service, set-default-shell-zsh.service, and zsh-extras.service
+  # units live under files/systemd/{system,user}/ — the systemd module
+  # below picks them up automatically and copies them into
+  # /usr/lib/systemd/{system,user}/)
+  # ---------------------------------------------------------------------
+  - type: systemd
+    system:
+      enabled:
+        - sddm.service
+        - tailscaled.service
+        - determinate-nix-installer.service   # runs on boot, skips itself once /nix exists
+        - uupd.timer                          # daily-ish OS image + Flatpak updates
+        - set-default-shell-zsh.service       # runs every boot, no-op once already on zsh
+      disabled:
+        - rpm-ostreed-automatic.timer         # superseded by uupd — avoid double updates
+      masked:
+        - bootc-fetch-apply-updates.service   # same reason — uupd is the single update path
+    user:
+      enabled:
+        - zed-installer.service   # runs on login, skips itself once ~/.local/bin/zed exists
+        - dropbox.service         # starts the sync daemon + tray icon on login
+        - zsh-extras.service      # direnv hook, starship init line, atuin — first login only
+
+  # ---------------------------------------------------------------------
+  # Final signing module — must be last
+  # ---------------------------------------------------------------------
+  - type: signing
