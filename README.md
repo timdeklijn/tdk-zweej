@@ -90,7 +90,7 @@ under the hood it's a wrapper around
   keybind (e.g. `bindsym $mod+Return exec ghostty`) once you've booted and
   are editing your own Sway config.
 - **zsh as default shell:** handled by `set-default-shell-zsh.service`
-  (a system unit, runs `/usr/local/bin/set-default-shell-zsh.sh` as root)
+  (a system unit, runs `/usr/bin/set-default-shell-zsh.sh` as root)
   rather than the more commonly suggested `/etc/default/useradd` approach.
   The reason: that file only affects accounts created via the `useradd`
   command, and it's not guaranteed that Anaconda's own account-creation
@@ -111,7 +111,7 @@ under the hood it's a wrapper around
   per-user binary. All three are handled by `zsh-extras.service`, a
   first-login user unit — same reasoning as Zed/Dropbox for keeping this
   runtime rather than build-time. The actual logic lives in
-  `files/system/usr/local/bin/setup-zsh-extras.sh` if you want to add more
+  `files/system/usr/bin/setup-zsh-extras.sh` if you want to add more
   later. It marks itself done in `~/.cache/zsh-extras-done` so it's a
   no-op after the first successful run, but retries on next login if it
   fails partway (e.g. no network yet).

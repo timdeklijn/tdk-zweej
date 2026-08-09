@@ -6,7 +6,7 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/local/bin/setup-zsh-extras.sh
+ExecStart=/usr/bin/setup-zsh-extras.sh
 
 [Install]
 WantedBy=default.target

@@ -164,14 +164,18 @@ modules:
         - uupd
 
   # ---------------------------------------------------------------------
-  # Config overrides shipped to /etc (see files/system/)
+  # Config overrides and helper scripts shipped into their target directories
+  # (see files/system/). Keep these as separate copies because /usr/local is a
+  # special path in the base image and cannot be written by this module.
   # - rpm-ostreed.conf: turn off rpm-ostreed's own AutomaticUpdatePolicy
   #   so it doesn't race/duplicate with uupd's own staging of OS updates
   # ---------------------------------------------------------------------
   - type: files
     files:
-      - source: system
-        destination: /
+      - source: system/etc
+        destination: /etc
+      - source: system/usr/bin
+        destination: /usr/bin
 
   # ---------------------------------------------------------------------
   # Enable services

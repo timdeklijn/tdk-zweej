@@ -5,7 +5,7 @@ After=local-fs.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/local/bin/set-default-shell-zsh.sh
+ExecStart=/usr/bin/set-default-shell-zsh.sh
 
 [Install]
 WantedBy=multi-user.target
