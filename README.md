@@ -57,10 +57,12 @@ To install fresh on bare metal, use the bootable installer ISO:
 
 1. In your repo on GitHub, go to **Actions → build-iso → Run workflow**
    (or just push a `v1.0.0`-style tag — that also triggers it).
-2. When it finishes, download all `tdk-zweej.iso.part-*` files and
+2. When it finishes, download **every** numbered
+   `tdk-zweej.iso.part-*` file (`part-000`, `part-001`, and so on) plus
    `tdk-zweej.iso.sha256` from the **Releases** page it publishes to. GitHub
    limits individual release assets to 2 GiB, so the ISO is published in parts.
-3. Reassemble and verify the ISO:
+3. In the directory containing those files, combine the parts in order and
+   verify the reconstructed ISO. Do not flash the individual parts:
 
    ```bash
    cat tdk-zweej.iso.part-* > tdk-zweej.iso
