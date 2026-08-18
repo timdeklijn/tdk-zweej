@@ -1,7 +1,7 @@
 [Unit]
 Description=Install Determinate Nix on first boot
-# Skip if /nix already exists (already installed, or a rebase brought it forward)
-ConditionPathExists=!/nix
+# Skip once the persistent OSTree installation has created the root profile.
+ConditionPathExists=!/var/home/nix/var/nix/profiles/per-user/root
 Wants=network-online.target
 After=network-online.target
 
@@ -10,7 +10,7 @@ Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/bin/bash -c '\
   curl --proto "=https" --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
-  | /usr/bin/sh -s -- install --no-confirm \
+  | /usr/bin/sh -s -- install ostree --no-confirm \
 '
 # Don't fail the boot if this fails (e.g. offline) — it will just retry next boot
 SuccessExitStatus=0 1

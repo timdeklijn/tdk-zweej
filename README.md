@@ -142,13 +142,12 @@ under the hood it's a wrapper around
   - Distrobox containers are deliberately left out of `uupd`'s scope by
     default (they're mutable and user-managed) — see the flag in `uupd`'s
     own README if you want to opt them in.
-- **Nix and Zed are both installed at runtime, not build time.** Nix genuinely
-  can't be installed cleanly at *container build time* on an OSTree/bootc
-  image, because `/nix` needs to persist across deployments the way `/etc`
-  and `/var` do, and that's only set up once the system is actually booted.
-  So `determinate-nix-installer.service` (a **system** unit) runs once on
-  first boot and installs it live — this is the same approach Determinate
-  Systems documents for ostree-based distros. Zed doesn't have that
+- **Nix and Zed are both installed at runtime, not build time.** The image
+  includes an empty, mode-000 `/nix` mount point because Fedora Atomic cannot
+  create new top-level directories after boot. On first boot,
+  `determinate-nix-installer.service` uses Determinate's **ostree** planner to
+  bind-mount persistent `/var/home/nix` at `/nix` and install Nix there. Zed
+  doesn't have that
   constraint (its installer just drops files in `~/.local`), but since it's
   inherently a per-user, per-home install, baking it into the image doesn't
   buy you much either — so `zed-installer.service` (a **user** unit) runs

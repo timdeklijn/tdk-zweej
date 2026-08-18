@@ -99,6 +99,13 @@ modules:
         - starship
         - uupd
 
+  # Fedora Atomic images cannot create new top-level directories after boot.
+  # Keep an empty mount point in the image so the OSTree Nix installer can
+  # bind-mount its persistent store from /var/home/nix.
+  - type: containerfile
+    snippets:
+      - RUN mkdir -p /nix && chmod 000 /nix
+
   # ---------------------------------------------------------------------
   # Tailscale
   # ---------------------------------------------------------------------
