@@ -139,6 +139,8 @@ under the hood it's a wrapper around
   so `uupd` is the one and only update path.
   - Check status any time with `uupd --help` or by watching
     `systemctl status uupd.timer` / `journalctl -u uupd.service`.
+  - Homebrew is not used by this image, so its `uupd` module is disabled in
+    `/etc/uupd/config.json`.
   - Distrobox containers are deliberately left out of `uupd`'s scope by
     default (they're mutable and user-managed) — see the flag in `uupd`'s
     own README if you want to opt them in.
