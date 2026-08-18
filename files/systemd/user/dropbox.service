@@ -1,0 +1,17 @@
+[Unit]
+Description=Dropbox file sync daemon
+After=graphical-session.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+# -i lets it self-install/self-update ~/.dropbox-dist on first run and
+# after upstream releases — normal behavior for the proprietary client.
+# `start` forks and returns immediately, hence Type=forking above.
+ExecStart=/usr/bin/dropbox start -i
+ExecStop=/usr/bin/dropbox stop
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

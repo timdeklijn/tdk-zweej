@@ -1,0 +1,13 @@
+[Unit]
+Description=Install Zed editor on first login
+# Skip if it's already installed for this user
+ConditionPathExists=!%h/.local/bin/zed
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/bash -c '/usr/bin/curl -f https://zed.dev/install.sh | /usr/bin/sh'
+SuccessExitStatus=0 1
+
+[Install]
+WantedBy=default.target

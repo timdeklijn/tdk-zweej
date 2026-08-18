@@ -1,0 +1,11 @@
+[Unit]
+Description=Set zsh as the default login shell for real user accounts
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/set-default-shell-zsh.sh
+
+[Install]
+WantedBy=multi-user.target
