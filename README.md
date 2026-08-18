@@ -1,13 +1,11 @@
 # tdk-zweej
 
 A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), based on
-[uBlue's `base-main`](https://github.com/ublue-os/main) with Sway + Noctalia bolted on top.
+[uBlue's `kinoite-main`](https://github.com/ublue-os/main) with KDE Plasma.
 
 **Included:**
-- Sway (+ swaybg, swaylock, swayidle, foot terminal, portals, polkit agent)
-- SDDM as the login manager (Noctalia doesn't ship a greeter yet)
-- [Noctalia shell](https://docs.noctalia.dev/) (Quickshell-based) — via the Terra repo
-- Ghostty — via Terra (kept `foot` too, as a tiny zero-dependency fallback terminal)
+- KDE Plasma desktop and SDDM login manager
+- Ghostty — via Terra
 - Brave Browser
 - 1Password (desktop app + `op` CLI)
 - Dropbox
@@ -91,14 +89,8 @@ under the hood it's a wrapper around
 
 ## Notes / things worth knowing
 
-- **Sway base image:** uBlue removed its dedicated `sway-atomic` image, so this
-  builds Sway from scratch on `base-main`. It's a minimal, DIY assembly — you'll
-  likely want to tweak the package list (add a wallpaper tool, notification
-  daemon if you don't want Noctalia's, etc.) once you've booted it once.
-- **Ghostty is installed but not wired up as the default terminal yet** —
-  this recipe doesn't ship a `~/.config/sway/config`, so set your terminal
-  keybind (e.g. `bindsym $mod+Return exec ghostty`) once you've booted and
-  are editing your own Sway config.
+- **Ghostty is installed but not wired up as the default terminal yet** — set
+  your preferred terminal in your desktop environment after booting.
 - **zsh as default shell:** handled by `set-default-shell-zsh.service`
   (a system unit, runs `/usr/bin/set-default-shell-zsh.sh` as root)
   rather than the more commonly suggested `/etc/default/useradd` approach.
@@ -126,22 +118,19 @@ under the hood it's a wrapper around
   no-op after the first successful run, but retries on next login if it
   fails partway (e.g. no network yet).
 - **Steam** comes from Flathub rather than as a native RPM — the standard,
-  well-supported way to run it on Fedora Atomic. `base-main` already ships
+  well-supported way to run it on Fedora Atomic. `kinoite-main` already ships
   Flathub as a system remote, so the `default-flatpaks` module here just
   adds Steam to it; it installs (and self-updates) on boot rather than
   being tied to OS image rebuilds.
-- **Noctalia:** installed from the [Terra repo](https://terrapkg.com), which is
-  third-party/community-maintained (not built by the Noctalia team). If your
-  Fedora version is 44+, it's also in the official Fedora repos directly — you
-  can drop the Terra dependency for it in that case.
-- **Auto-updates run via `uupd`.** `base-main` doesn't enable any auto-updater
+- **KDE Plasma:** provided by the `kinoite-main` base image.
+- **Auto-updates run via `uupd`.** `kinoite-main` doesn't enable any auto-updater
   out of the box, so this recipe installs `uupd` from uBlue's own `ublue-os/packages`
   COPR (the `bling` module *looks* like the natural place for this, but it
   only offers the deprecated `ublue-update`, not `uupd` — hence the separate
   `dnf` module). `uupd.timer` runs roughly every 6 hours and pulls a new OS
   image (if your GitHub Action has built one) plus refreshes Flatpaks in one
   coordinated pass, staging the OS update for your next reboot — nothing
-  applies live or force-reboots you. Since `base-main` inherits an
+  applies live or force-reboots you. Since `kinoite-main` inherits an
   `AutomaticUpdatePolicy=stage` default from upstream uBlue config, which
   would otherwise have `rpm-ostreed` *also* try to stage updates on its own
   schedule, the recipe ships an `/etc/rpm-ostreed.conf` override
@@ -168,7 +157,7 @@ under the hood it's a wrapper around
   exists before doing anything, so they're harmless no-ops on every boot/
   login after the first. If you'd rather have Zed baked into the image
   instead, it's available via [Terra](https://terrapkg.com) as `zed` — just
-  add it back to the `noctalia-shell` dnf module.
+  add it back to the Terra dnf module.
 - If you're on Fedora 44+ and don't need flakes/Determinate's extras, the
   native `nix` dnf package is a simpler build-time alternative to the
   first-boot installer — just add it to the main `dnf` module instead.

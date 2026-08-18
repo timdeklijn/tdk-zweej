@@ -2,38 +2,19 @@
 
 name: tdk-zweej
 # Change this to your own image name
-description: My personal atomic Linux distro — Sway + Noctalia
+description: My personal atomic Linux distro based on Kinoite
 
-# uBlue's dedicated sway-atomic image was deprecated/removed, so we build
-# on the plain "base" image (no desktop environment) and add everything
-# ourselves. This still gets you uBlue's codecs, hardware accel, and
-# distrobox/toolbx additions on top of stock Fedora Atomic.
-base-image: ghcr.io/ublue-os/base-main
+base-image: ghcr.io/ublue-os/kinoite-main
 image-version: latest
 
 modules:
   # ---------------------------------------------------------------------
-  # Sway + minimal Wayland session essentials
+  # Desktop session essentials
   # ---------------------------------------------------------------------
   - type: dnf
     install:
       packages:
-        - sway
-        - swaybg
-        - swaylock
-        - swayidle
-        - foot                     # fallback terminal
-        - xdg-desktop-portal-wlr
-        - polkit-kde-agent-1       # replaces polkit-gnome (removed in fc44)
-        - brightnessctl
-        - playerctl
-        - grim
-        - slurp
-        - NetworkManager-tui
-        - sddm                     # display manager (Noctalia has no greeter yet)
-        - qt6-qtsvg
-        - qt6-qtmultimedia
-        - qt6-qt5compat
+        - emacs
 
   # ---------------------------------------------------------------------
   # Steam + Signal + Slack — via Flatpak. uBlue base images already ship
@@ -51,7 +32,7 @@ modules:
           - com.slack.Slack
 
   # ---------------------------------------------------------------------
-  # Noctalia shell (Quickshell-based) + Ghostty, via Terra
+  # Ghostty, via Terra
   # (Zed is intentionally NOT baked in here — see the zed-installer.service
   # user unit below, which runs Zed's own install script on first login)
   # ---------------------------------------------------------------------
@@ -63,7 +44,6 @@ modules:
     install:
       skip-unavailable: true
       packages:
-        - noctalia-shell   # pulls in quickshell as a dependency
         - ghostty
 
   # ---------------------------------------------------------------------
@@ -78,7 +58,7 @@ modules:
         - https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
     install:
       packages:
-        - liberation-fonts-all  # provides the legacy liberation-fonts dependency
+        - liberation-fonts-all # provides the legacy liberation-fonts dependency
         - repo: brave-browser
           packages:
             - brave-browser
@@ -90,7 +70,7 @@ modules:
     repos:
       cleanup: true
       files:
-        - 1password.repo   # from ./files/dnf/1password.repo in this repo
+        - 1password.repo # from ./files/dnf/1password.repo in this repo
       keys:
         - https://downloads.1password.com/linux/keys/1password.asc
     install:
@@ -152,7 +132,7 @@ modules:
 
   # ---------------------------------------------------------------------
   # uupd — Universal Blue's unified updater (OS image + Flatpak, in one
-  # coordinated pass triggered by uupd.timer). Not shipped by base-main,
+  # coordinated pass triggered by uupd.timer). Not shipped by kinoite-main,
   # so it comes from uBlue's own package COPR.
   # ---------------------------------------------------------------------
   - type: dnf
@@ -190,18 +170,18 @@ modules:
       enabled:
         - sddm.service
         - tailscaled.service
-        - determinate-nix-installer.service   # runs on boot, skips itself once /nix exists
-        - uupd.timer                          # daily-ish OS image + Flatpak updates
-        - set-default-shell-zsh.service       # runs every boot, no-op once already on zsh
+        - determinate-nix-installer.service # runs on boot, skips itself once /nix exists
+        - uupd.timer # daily-ish OS image + Flatpak updates
+        - set-default-shell-zsh.service # runs every boot, no-op once already on zsh
       disabled:
-        - rpm-ostreed-automatic.timer         # superseded by uupd — avoid double updates
+        - rpm-ostreed-automatic.timer # superseded by uupd — avoid double updates
       masked:
-        - bootc-fetch-apply-updates.service   # same reason — uupd is the single update path
+        - bootc-fetch-apply-updates.service # same reason — uupd is the single update path
     user:
       enabled:
-        - zed-installer.service   # runs on login, skips itself once ~/.local/bin/zed exists
-        - dropbox.service         # starts the sync daemon + tray icon on login
-        - zsh-extras.service      # direnv hook, starship init line, atuin — first login only
+        - zed-installer.service # runs on login, skips itself once ~/.local/bin/zed exists
+        - dropbox.service # starts the sync daemon + tray icon on login
+        - zsh-extras.service # direnv hook, starship init line, atuin — first login only
 
   # ---------------------------------------------------------------------
   # Final signing module — must be last
