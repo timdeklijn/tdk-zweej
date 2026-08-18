@@ -19,6 +19,7 @@ modules:
         - emacs
         - zsh
         - direnv
+        - zoxide
 
   # ---------------------------------------------------------------------
   # Steam + Signal + Slack — via Flatpak. uBlue base images already ship

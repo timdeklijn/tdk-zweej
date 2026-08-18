@@ -1,6 +1,6 @@
 #!/usr/bin/bash
-# One-time per-user zsh environment setup: direnv hook, starship prompt
-# init line, atuin. Marks itself done via ~/.cache/zsh-extras-done so
+# One-time per-user zsh environment setup: direnv hook, zoxide init,
+# starship prompt init line, atuin. Marks itself done via ~/.cache/zsh-extras-done so
 # it's a fast no-op after the first successful run; if it fails partway
 # (e.g. no network yet), it just tries again next login since the marker
 # is only written at the very end.
@@ -20,6 +20,11 @@ fi
 # --- direnv hook ---
 if ! grep -q 'direnv hook zsh' "$zshrc"; then
     echo 'eval "$(direnv hook zsh)"' >> "$zshrc"
+fi
+
+# --- zoxide (smarter cd; package is baked into the image) ---
+if ! grep -q 'zoxide init zsh' "$zshrc"; then
+    echo 'eval "$(zoxide init zsh)"' >> "$zshrc"
 fi
 
 # --- Starship prompt (package is baked into the image; just needs the
