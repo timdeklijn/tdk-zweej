@@ -22,7 +22,7 @@ modules:
         - zoxide
 
   # ---------------------------------------------------------------------
-  # Steam + Signal + Slack — via Flatpak. uBlue base images already ship
+  # Steam + Signal + Slack + Spotify — via Flatpak. uBlue base images already ship
   # the system Flathub remote, so this just adds them to it (installed +
   # updated on boot, not tied to the OS image build).
   # Note: com.slack.Slack is community-packaged on Flathub, not published
@@ -35,6 +35,7 @@ modules:
           - com.valvesoftware.Steam
           - org.signal.Signal
           - com.slack.Slack
+          - com.spotify.Client
 
   # ---------------------------------------------------------------------
   # Ghostty, via Terra

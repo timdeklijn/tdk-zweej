@@ -18,6 +18,7 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 - Steam — via Flatpak
 - Signal — via Flatpak
 - Slack — via Flatpak (community-packaged)
+- Spotify — via Flatpak
 - Zed editor and Determinate Nix — both installed at runtime, not baked into the image (see notes below)
 
 ## 1. Set this up as your own repo
