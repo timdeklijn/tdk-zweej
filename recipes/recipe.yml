@@ -10,11 +10,15 @@ image-version: latest
 modules:
   # ---------------------------------------------------------------------
   # Desktop session essentials
+  # zsh is made the default login shell by set-default-shell-zsh.service;
+  # direnv and starship are initialized by zsh-extras.service.
   # ---------------------------------------------------------------------
   - type: dnf
     install:
       packages:
         - emacs
+        - zsh
+        - direnv
 
   # ---------------------------------------------------------------------
   # Steam + Signal + Slack — via Flatpak. uBlue base images already ship
@@ -47,34 +51,23 @@ modules:
         - ghostty
 
   # ---------------------------------------------------------------------
-  # Brave Browser
+  # Brave Browser + 1Password (desktop app + CLI)
   # ---------------------------------------------------------------------
   - type: dnf
     repos:
       cleanup: true
       files:
         - https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
+        - 1password.repo # from ./files/dnf/1password.repo in this repo
       keys:
         - https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
+        - https://downloads.1password.com/linux/keys/1password.asc
     install:
       packages:
         - liberation-fonts-all # provides the legacy liberation-fonts dependency
         - repo: brave-browser
           packages:
             - brave-browser
-
-  # ---------------------------------------------------------------------
-  # 1Password (desktop app + CLI) — same repo serves both packages
-  # ---------------------------------------------------------------------
-  - type: dnf
-    repos:
-      cleanup: true
-      files:
-        - 1password.repo # from ./files/dnf/1password.repo in this repo
-      keys:
-        - https://downloads.1password.com/linux/keys/1password.asc
-    install:
-      packages:
         - 1password
         - 1password-cli
 
@@ -91,32 +84,20 @@ modules:
         - nautilus-dropbox
 
   # ---------------------------------------------------------------------
-  # zsh — set as the default login shell for real user accounts via
-  # set-default-shell-zsh.service (see files/systemd/system/), since
-  # neither rebase-in-place nor a fresh Anaconda install reliably read
-  # /etc/default/useradd for this.
+  # starship prompt + uupd
+  # (starship comes via COPR — Fedora dropped its own package after F36;
+  # atim/starship is the standard place to get it now. uupd is Universal
+  # Blue's unified OS image + Flatpak updater.)
   # ---------------------------------------------------------------------
-  - type: dnf
-    install:
-      packages:
-        - zsh
-
-  # ---------------------------------------------------------------------
-  # direnv (plain Fedora package) + starship prompt (via COPR — Fedora
-  # dropped its own starship package after F36, atim/starship is the
-  # standard place to get it now)
-  # ---------------------------------------------------------------------
-  - type: dnf
-    install:
-      packages:
-        - direnv
   - type: dnf
     repos:
       copr:
         - atim/starship
+        - ublue-os/packages
     install:
       packages:
         - starship
+        - uupd
 
   # ---------------------------------------------------------------------
   # Tailscale
@@ -129,19 +110,6 @@ modules:
     install:
       packages:
         - tailscale
-
-  # ---------------------------------------------------------------------
-  # uupd — Universal Blue's unified updater (OS image + Flatpak, in one
-  # coordinated pass triggered by uupd.timer). Not shipped by kinoite-main,
-  # so it comes from uBlue's own package COPR.
-  # ---------------------------------------------------------------------
-  - type: dnf
-    repos:
-      copr:
-        - ublue-os/packages
-    install:
-      packages:
-        - uupd
 
   # ---------------------------------------------------------------------
   # Config overrides and helper scripts shipped into their target directories
