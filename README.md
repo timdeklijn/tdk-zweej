@@ -4,7 +4,7 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 [uBlue's `kinoite-main`](https://github.com/ublue-os/main) with KDE Plasma.
 
 **Included:**
-- KDE Plasma desktop and SDDM login manager
+- KDE Plasma desktop
 - Ghostty — via Terra
 - Brave Browser
 - 1Password (desktop app + `op` CLI)

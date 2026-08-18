@@ -136,7 +136,6 @@ modules:
   - type: systemd
     system:
       enabled:
-        - sddm.service
         - tailscaled.service
         - determinate-nix-installer.service # runs on boot, skips itself once /nix exists
         - uupd.timer # daily-ish OS image + Flatpak updates
