@@ -7,10 +7,15 @@
 set -euo pipefail
 
 marker="$HOME/.cache/zsh-extras-done"
-[ -f "$marker" ] && exit 0
-
 zshrc="$HOME/.zshrc"
 touch "$zshrc"
+
+# --- User-local binaries ---
+if ! grep -qF 'export PATH="$HOME/.local/bin:$PATH"' "$zshrc"; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$zshrc"
+fi
+
+[ -f "$marker" ] && exit 0
 
 # --- direnv hook ---
 if ! grep -q 'direnv hook zsh' "$zshrc"; then
