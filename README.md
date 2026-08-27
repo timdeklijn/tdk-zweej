@@ -6,6 +6,7 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 **Included:**
 - KDE Plasma desktop
 - Ghostty — via Terra
+- Sublime Text and Sublime Merge
 - Brave Browser
 - 1Password (desktop app + `op` CLI)
 - Dropbox

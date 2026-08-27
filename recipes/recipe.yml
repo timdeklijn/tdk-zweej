@@ -22,6 +22,21 @@ modules:
         - zoxide
 
   # ---------------------------------------------------------------------
+  # Sublime Text + Sublime Merge
+  # ---------------------------------------------------------------------
+  - type: dnf
+    repos:
+      cleanup: true
+      files:
+        - https://download.sublimetext.com/rpm/stable/x86_64/sublime-text.repo
+      keys:
+        - https://download.sublimetext.com/sublimehq-rpm-pub.gpg
+    install:
+      packages:
+        - sublime-text
+        - sublime-merge
+
+  # ---------------------------------------------------------------------
   # Steam + Signal + Slack + Spotify — via Flatpak. uBlue base images already ship
   # the system Flathub remote, so this just adds them to it (installed +
   # updated on boot, not tied to the OS image build).
