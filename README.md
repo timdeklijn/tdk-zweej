@@ -106,7 +106,14 @@ under the hood it's a wrapper around
   It's idempotent, so it costs nothing extra on later boots. One caveat:
   like any shell change, it takes effect on next login, not the current
   session.
-- **direnv, starship, and atuin:** direnv and starship are both baked into
+- **zsh extras:** direnv, zoxide, and starship are baked into the image as
+  packages (starship comes via the `atim/starship` COPR — it
+  was dropped from Fedora's own repos after F36). At first login, the
+  `zsh-extras.service` appends one clearly marked, project-managed block to
+  `~/.zshrc` containing the user-local PATH and init lines for direnv, zoxide,
+  and starship. It never overwrites unrelated user configuration. Atuin is
+  installed per user and initialized from the same managed block when present.
+  direnv and starship are both baked into
   the image as packages (starship comes via the `atim/starship` COPR — it
   was dropped from Fedora's own repos after F36). What still has to happen
   per-user, at first login, is wiring their init lines into `~/.zshrc`

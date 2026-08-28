@@ -1,6 +1,6 @@
 #!/usr/bin/bash
-# One-time per-user zsh environment setup: direnv hook, zoxide init,
-# starship prompt init line, atuin. Marks itself done via ~/.cache/zsh-extras-done so
+# Per-user zsh environment setup: managed init block for PATH, direnv, zoxide,
+# starship, and atuin. Marks itself done via ~/.cache/zsh-extras-done so
 # it's a fast no-op after the first successful run; if it fails partway
 # (e.g. no network yet), it just tries again next login since the marker
 # is only written at the very end.
@@ -10,34 +10,29 @@ marker="$HOME/.cache/zsh-extras-done"
 zshrc="$HOME/.zshrc"
 touch "$zshrc"
 
-# --- User-local binaries ---
-if ! grep -qF 'export PATH="$HOME/.local/bin:$PATH"' "$zshrc"; then
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$zshrc"
-fi
-
 [ -f "$marker" ] && exit 0
 
-# --- direnv hook ---
-if ! grep -q 'direnv hook zsh' "$zshrc"; then
-    echo 'eval "$(direnv hook zsh)"' >> "$zshrc"
-fi
+# --- Project-managed zsh configuration ---
+if ! grep -qF '# >>> tdk-zweej managed >>>' "$zshrc"; then
+    cat >> "$zshrc" <<'EOF'
 
-# --- zoxide (smarter cd; package is baked into the image) ---
-if ! grep -q 'zoxide init zsh' "$zshrc"; then
-    echo 'eval "$(zoxide init zsh)"' >> "$zshrc"
+# >>> tdk-zweej managed >>>
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.atuin/bin:$PATH"
+eval "$(direnv hook zsh)"
+eval "$(zoxide init zsh)"
+eval "$(starship init zsh)"
+if [ -x "$HOME/.atuin/bin/atuin" ]; then
+    eval "$( $HOME/.atuin/bin/atuin init zsh )"
 fi
-
-# --- Starship prompt (package is baked into the image; just needs the
-# init line, since that has to go in ~/.zshrc regardless) ---
-if ! grep -q 'starship init zsh' "$zshrc"; then
-    echo 'eval "$(starship init zsh)"' >> "$zshrc"
+# <<< tdk-zweej managed <<<
+EOF
 fi
 
 # --- Atuin (better shell history) ---
-# Its own installer adds the `eval "$(atuin init zsh)"` line to ~/.zshrc
-# itself, so there's nothing extra to append here.
+# Install it before future shells load the managed init block.
 if [ ! -x "$HOME/.atuin/bin/atuin" ]; then
-    curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh -s -- --non-interactive
+    curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh -s -- --non-interactive >/dev/null
 fi
 
 mkdir -p "$HOME/.cache"

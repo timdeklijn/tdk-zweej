@@ -1,5 +1,5 @@
 [Unit]
-Description=Set up zsh extras (direnv hook, starship init line, atuin)
+Description=Set up zsh extras (managed zsh config, atuin)
 After=network-online.target
 Wants=network-online.target
 
