@@ -114,6 +114,15 @@ under the hood it's a wrapper around
   workloads, block-device mounts, or behavior matching a production node.
 - **Ghostty is installed but not wired up as the default terminal yet** — set
   your preferred terminal in your desktop environment after booting.
+- **Ghostty themes:** the Terra package does not currently include the themes.
+  Install the [iTerm2 Color Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes)
+  Ghostty themes manually:
+  ```bash
+  git clone https://github.com/mbadolato/iTerm2-Color-Schemes.git
+  mkdir -p ~/.config/ghostty/themes
+  cp iTerm2-Color-Schemes/ghostty/* ~/.config/ghostty/themes/
+  rm -rf iTerm2-Color-Schemes
+  ```
 - **zsh as default shell:** handled by `set-default-shell-zsh.service`
   (a system unit, runs `/usr/bin/set-default-shell-zsh.sh` as root)
   rather than the more commonly suggested `/etc/default/useradd` approach.
