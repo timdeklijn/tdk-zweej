@@ -11,6 +11,8 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 - 1Password (desktop app + `op` CLI)
 - Dropbox
 - Tailscale
+- Local Kubernetes tooling: kind, kubectl, kubectx, Helm, k9s, stern,
+  kustomize, and yq; use rootless Podman as kind's provider
 - [uupd](https://github.com/ublue-os/uupd) — unified auto-updater for the OS image + Flatpaks, on a daily-ish timer
 - zsh, set as the default login shell for real user accounts, with the
   [Starship prompt](https://starship.rs/) and [direnv](https://direnv.net/)'s
@@ -91,6 +93,25 @@ under the hood it's a wrapper around
 
 ## Notes / things worth knowing
 
+- **Local Kubernetes:** `kind`, `kubectl`, `kubectx`, Helm, `k9s`, `stern`,
+  `kustomize`, and `yq` are baked into the image. The uBlue base image already
+  includes Podman, so use it rootlessly rather than adding Docker or a
+  host-level Kubernetes distribution. After booting a rebuilt image, create a
+  disposable development cluster with:
+  ```bash
+  KIND_EXPERIMENTAL_PROVIDER=podman \
+    systemd-run --scope --user -p Delegate=yes kind create cluster --name dev
+  kubectl cluster-info --context kind-dev
+  ```
+  `kind` writes the `kind-dev` context to `~/.kube/config`; `kubectl` and Helm
+  use it automatically. Delete the cluster and its Podman containers with:
+  ```bash
+  KIND_EXPERIMENTAL_PROVIDER=podman kind delete cluster --name dev
+  ```
+  For multi-node testing, pass a kind configuration file to `kind create
+  cluster --config <file>`. Rootless kind is appropriate for application and
+  manifest development. Use a VM-backed cluster instead if you need privileged
+  workloads, block-device mounts, or behavior matching a production node.
 - **Ghostty is installed but not wired up as the default terminal yet** — set
   your preferred terminal in your desktop environment after booting.
 - **zsh as default shell:** handled by `set-default-shell-zsh.service`
