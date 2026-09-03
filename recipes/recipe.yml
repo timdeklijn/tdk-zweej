@@ -31,12 +31,28 @@ modules:
       packages:
         - kind
         - kubernetes-client # kubectl
-        - kubectx
         - helm
         - k9s
-        - stern
         - kustomize
         - yq
+
+  # kubectx and stern are not packaged in Fedora 44. Pin and verify upstream
+  # releases so image builds stay reproducible instead of skipping them.
+  - type: containerfile
+    snippets:
+      - >-
+        RUN curl -fsSL -o /usr/bin/kubectx https://github.com/ahmetb/kubectx/releases/download/v0.11.0/kubectx
+        && echo '1905c04422efe305d5b27f7526c3573a8c00b9e291e825dba6dd8a5350d59037  /usr/bin/kubectx' | sha256sum --check
+        && chmod 0755 /usr/bin/kubectx
+      - >-
+        RUN curl -fsSL -o /usr/bin/kubens https://github.com/ahmetb/kubectx/releases/download/v0.11.0/kubens
+        && echo 'bf81b4a515e96bfb1878e3b85950bd5742d96a5d6b398e737495ab1b3972ef70  /usr/bin/kubens' | sha256sum --check
+        && chmod 0755 /usr/bin/kubens
+      - >-
+        RUN curl -fsSL -o /tmp/stern.tar.gz https://github.com/stern/stern/releases/download/v1.34.0/stern_1.34.0_linux_amd64.tar.gz
+        && echo '7754adfa653939240f7d20fff4ada9b69cda40c9e70732301f67bb8045f1ef3e  /tmp/stern.tar.gz' | sha256sum --check
+        && tar -xzf /tmp/stern.tar.gz -C /usr/bin stern
+        && rm /tmp/stern.tar.gz
 
   # ---------------------------------------------------------------------
   # Sublime Text + Sublime Merge
