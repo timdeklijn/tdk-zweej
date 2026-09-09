@@ -14,9 +14,15 @@ modules:
   # direnv and starship are initialized by zsh-extras.service.
   # ---------------------------------------------------------------------
   - type: dnf
+    repos:
+      files:
+        - https://packages.microsoft.com/yumrepos/vscode/config.repo
+      keys:
+        - https://packages.microsoft.com/keys/microsoft.asc
     install:
       packages:
         - emacs
+        - code
         - zsh
         - direnv
         - zoxide
