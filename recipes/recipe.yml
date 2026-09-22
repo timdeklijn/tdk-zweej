@@ -92,6 +92,20 @@ modules:
           - com.spotify.Client
 
   # ---------------------------------------------------------------------
+  # VLC + Kdenlive — native RPMs, deliberately not Flatpak. Both are in
+  # Fedora's own repos at current upstream versions, and the image already
+  # carries the full ffmpeg stack they use. Kinoite's Qt6/KF6 runtime is
+  # already present, so the marginal size is small. The Flatpaks would
+  # additionally pull the KDE 5.15 (VLC) and 6.10 (Kdenlive) runtimes for
+  # no version benefit.
+  # ---------------------------------------------------------------------
+  - type: dnf
+    install:
+      packages:
+        - vlc
+        - kdenlive
+
+  # ---------------------------------------------------------------------
   # Ghostty, via Terra
   # (Zed is intentionally NOT baked in here — see the zed-installer.service
   # user unit below, which runs Zed's own install script on first login)
@@ -191,7 +205,8 @@ modules:
   # ---------------------------------------------------------------------
   # Enable services
   # (The determinate-nix-installer.service, zed-installer.service,
-  # dropbox.service, set-default-shell-zsh.service, and zsh-extras.service
+  # opencode-installer.service, dropbox.service,
+  # set-default-shell-zsh.service, and zsh-extras.service
   # units live under files/systemd/{system,user}/ — the systemd module
   # below picks them up automatically and copies them into
   # /usr/lib/systemd/{system,user}/)
@@ -210,6 +225,7 @@ modules:
     user:
       enabled:
         - zed-installer.service # runs on login, skips itself once ~/.local/bin/zed exists
+        - opencode-installer.service # runs on login, skips itself once ~/.opencode/bin/opencode exists
         - dropbox.service # starts the sync daemon + tray icon on login
         - zsh-extras.service # direnv hook, starship init line, atuin — first login only
 

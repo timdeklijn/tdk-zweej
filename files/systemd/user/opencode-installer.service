@@ -1,0 +1,16 @@
+[Unit]
+Description=Install opencode on first login
+# Skip if it's already installed for this user
+ConditionPathExists=!%h/.opencode/bin/opencode
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# --no-modify-path keeps ~/.zshrc under the managed block written by
+# setup-zsh-extras.sh; the symlink into ~/.local/bin puts opencode on PATH
+# the same way Zed's installer does.
+ExecStart=/usr/bin/bash -c '/usr/bin/curl -fsSL https://opencode.ai/install | /usr/bin/bash -s -- --no-modify-path && mkdir -p "$HOME/.local/bin" && ln -sf "$HOME/.opencode/bin/opencode" "$HOME/.local/bin/opencode"'
+SuccessExitStatus=0 1
+
+[Install]
+WantedBy=default.target

@@ -7,6 +7,8 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 - KDE Plasma desktop
 - Ghostty — via Terra
 - Sublime Text and Sublime Merge
+- VLC and Kdenlive — media player and video editor, as native RPMs rather
+  than Flatpaks (see notes below)
 - Brave Browser
 - 1Password (desktop app + `op` CLI)
 - Dropbox
@@ -22,7 +24,8 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 - Signal — via Flatpak
 - Slack — via Flatpak (community-packaged)
 - Spotify — via Flatpak
-- Zed editor and Determinate Nix — both installed at runtime, not baked into the image (see notes below)
+- Zed editor, opencode, and Determinate Nix — all installed at runtime, not
+  baked into the image (see notes below)
 
 ## 1. Set this up as your own repo
 
@@ -161,6 +164,20 @@ under the hood it's a wrapper around
   Flathub as a system remote, so the `default-flatpaks` module here just
   adds Steam to it; it installs (and self-updates) on boot rather than
   being tied to OS image rebuilds.
+- **VLC and Kdenlive are native RPMs, not Flatpaks** — the opposite of
+  Steam, for concrete reasons rather than preference. Both are in Fedora's
+  own repos at the same versions as upstream/Flathub (VLC 3.0.23,
+  Kdenlive 26.08.1 at the time of writing), and the base image already
+  carries the full ffmpeg and codec stack they use, so native installs get
+  complete codec and hardware-acceleration support. Kinoite already ships
+  Qt6/KF6, so the marginal cost is small (~21 MiB for VLC, ~137 MiB for
+  Kdenlive); the Flatpaks would additionally pull the KDE 5.15 (VLC) and
+  KDE 6.10 (Kdenlive) runtimes for no version benefit. The trade-off is
+  that updates arrive with the OS image (staged by `uupd`, applied on
+  reboot) rather than updating live in a sandbox. VLC's optional
+  `vlc-plugins-freeworld` RPM from RPM Fusion is *not* installed — the
+  image's full ffmpeg build covers the common formats; add it to the
+  "Media apps" dnf module if you need something exotic.
 - **KDE Plasma:** provided by the `kinoite-main` base image.
 - **Auto-updates run via `uupd`.** `kinoite-main` doesn't enable any auto-updater
   out of the box, so this recipe installs `uupd` from uBlue's own `ublue-os/packages`
@@ -198,6 +215,13 @@ under the hood it's a wrapper around
   login after the first. If you'd rather have Zed baked into the image
   instead, it's available via [Terra](https://terrapkg.com) as `zed` — just
   add it back to the Terra dnf module.
+  opencode follows the same runtime pattern for the same reason: it's a
+  per-user install that self-updates, so `opencode-installer.service` (a
+  user unit) runs its own `install.sh` on first login, once per user. It
+  runs with `--no-modify-path` so `~/.zshrc` stays under the
+  `tdk-zweej managed` block, then symlinks `~/.opencode/bin/opencode` into
+  `~/.local/bin` — where Zed's installer also lands, and which is already
+  on PATH.
 - If you're on Fedora 44+ and don't need flakes/Determinate's extras, the
   native `nix` dnf package is a simpler build-time alternative to the
   first-boot installer — just add it to the main `dnf` module instead.
