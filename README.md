@@ -24,6 +24,9 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 - Signal — via Flatpak
 - Slack — via Flatpak (community-packaged)
 - Spotify — via Flatpak
+- Obsidian — via Flatpak (note-taking app; Obsidian publishes no official
+  RPM, and Flatpak is its only first-party Linux package besides
+  Snap/AppImage)
 - Zed editor, opencode, and Determinate Nix — all installed at runtime, not
   baked into the image (see notes below)
 
