@@ -61,6 +61,22 @@ modules:
         && rm /tmp/stern.tar.gz
 
   # ---------------------------------------------------------------------
+  # Godot Engine — native RPM. Fedora's package is at the exact current
+  # upstream stable (4.7.2, packaged by Godot's own release manager), so
+  # it matches what the Flatpak offers with no sandbox in the way —
+  # which matters for headless CLI use (`godot --headless`). GDScript
+  # build only; Fedora does not package the C#/.NET variant.
+  # Weak deps off: godot Recommends blender + oidn, which would add
+  # ~2 GiB of downloads / ~6 GiB installed for a tool we don't otherwise
+  # need — without them the install is ~149 MiB / ~466 MiB.
+  # ---------------------------------------------------------------------
+  - type: dnf
+    install:
+      install-weak-deps: false
+      packages:
+        - godot
+
+  # ---------------------------------------------------------------------
   # Sublime Text + Sublime Merge
   # ---------------------------------------------------------------------
   - type: dnf

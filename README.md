@@ -15,6 +15,8 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 - Tailscale
 - Local Kubernetes tooling: kind, kubectl, kubectx, Helm, k9s, stern,
   kustomize, and yq; use rootless Podman as kind's provider
+- Godot Engine — native RPM (GDScript build; headless-capable as
+  `godot --headless`)
 - [uupd](https://github.com/ublue-os/uupd) — unified auto-updater for the OS image + Flatpaks, on a daily-ish timer
 - zsh, set as the default login shell for real user accounts, with the
   [Starship prompt](https://starship.rs/) and [direnv](https://direnv.net/)'s
@@ -181,6 +183,33 @@ under the hood it's a wrapper around
   `vlc-plugins-freeworld` RPM from RPM Fusion is *not* installed — the
   image's full ffmpeg build covers the common formats; add it to the
   "Media apps" dnf module if you need something exotic.
+- **Godot is a native RPM, chosen the same way as VLC and Kdenlive** —
+  Fedora's `godot` package tracks upstream exactly (4.7.2 at the time of
+  writing, packaged by Rémi Verschelde, Godot's own release manager, with
+  updates landing within days of upstream's), so the Flatpak is the same
+  version and buys no version benefit. The sandbox is the deal-breaker
+  here: headless CLI use (`godot --headless` for scripted runs, tests,
+  and exports) wants a plain binary on `$PATH` with no Flatpak wrapper,
+  and `/usr/bin/godot` also works from ssh, systemd units, and derived
+  containers. The trade-off is the usual one: updates ride the OS image
+  (staged by `uupd`, applied on reboot) rather than updating live in a
+  sandbox. One caveat: Fedora's build is GDScript-only — there is no
+  C#/.NET variant, and Flathub's `org.godotengine.GodotSharp` is still
+  stuck on 4.3. If C# is ever needed, use the official .NET tarball from
+  godotengine.org instead (pinned and checksummed, like the
+  kubectx/stern snippets).
+  - **Export templates are a separate one-time download.** They are not
+    needed for headless runs or tests, but they *are* required for
+    `--export-*`. Let the editor fetch them (Editor → Manage Export
+    Templates), or unpack them manually into
+    `~/.local/share/godot/export_templates/4.7.2.stable/` — they're
+    roughly 1.28 GiB.
+  - **Blender is deliberately not installed alongside it.** Fedora's
+    `godot` package *Recommends* `blender` (and `oidn`) for the `.blend`
+    importer; satisfying that would add ~2 GiB of downloads / ~6 GiB
+    installed, so this module disables weak dependencies. If you want to
+    import `.blend` files directly, add `blender` to the module (or grab
+    it as a Flatpak) yourself.
 - **KDE Plasma:** provided by the `kinoite-main` base image.
 - **Auto-updates run via `uupd`.** `kinoite-main` doesn't enable any auto-updater
   out of the box, so this recipe installs `uupd` from uBlue's own `ublue-os/packages`
