@@ -138,6 +138,29 @@ modules:
         - ghostty
 
   # ---------------------------------------------------------------------
+  # kanata — key remapper for home-row mods.
+  # Not in Fedora's own repos, so pin and verify the upstream release binary
+  # (same approach as kubectx/stern above) rather than depending on Terra.
+  # From linux-binaries-x64.zip we install `kanata_linux_x64` — the build
+  # WITHOUT the `cmd` feature, so key remaps can never shell out.
+  # The udev rule at files/system/etc/udev/rules.d/99-keychron-uaccess.rules
+  # grants the active user access to Keychron keyboards so kanata can read
+  # them without needing the `input` group.
+  # ---------------------------------------------------------------------
+  - type: dnf
+    install:
+      packages:
+        - unzip # unpack the pinned kanata release zip below
+  - type: containerfile
+    snippets:
+      - >-
+        RUN curl -fsSL -o /tmp/kanata.zip https://github.com/jtroo/kanata/releases/download/v1.12.0/linux-binaries-x64.zip
+        && echo '0bedd91567c5d7c54679061baadc37e4f83fb71750003999bc1d11f2c9754f36  /tmp/kanata.zip' | sha256sum --check
+        && unzip -j -o /tmp/kanata.zip kanata_linux_x64 -d /tmp/kanata-bin
+        && install -Dm0755 /tmp/kanata-bin/kanata_linux_x64 /usr/bin/kanata
+        && rm -rf /tmp/kanata.zip /tmp/kanata-bin
+
+  # ---------------------------------------------------------------------
   # Brave Browser + 1Password (desktop app + CLI)
   # ---------------------------------------------------------------------
   - type: dnf

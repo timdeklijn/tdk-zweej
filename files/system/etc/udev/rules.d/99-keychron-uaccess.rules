@@ -1,0 +1,12 @@
+# Keychron keyboards (USB vendor 3434).
+#
+# kanata reads the physical keyboard directly (via /dev/input/event*) to
+# re-emit it through /dev/uinput. By default those event nodes are root:input
+# and the primary user is not in the `input` group.
+#
+# Instead of group membership (which on Fedora Atomic is awkward: `input`
+# lives in /usr/lib/group via NSS `altfiles`, so `usermod -aG input` is a
+# no-op), tag the devices with `uaccess`. systemd-logind then grants the
+# active local session user an ACL on the node — the same mechanism that
+# already makes /dev/uinput writable.
+SUBSYSTEM=="input", ENV{ID_VENDOR_ID}=="3434", ENV{ID_INPUT_KEYBOARD}=="1", TAG+="uaccess"
