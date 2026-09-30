@@ -1,0 +1,5 @@
+# KWin 6.7.x workaround (2026-09-30): disable hardware overlay planes.
+# Without this, KWin can fail its output-layer configuration at the plasmalogin
+# session handover and the login wallpaper stays on screen with no desktop.
+# Known-bad: kwin 6.7.5. Before removing, run skill `kwin-overlay-check`.
+KWIN_USE_OVERLAYS=0
