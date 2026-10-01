@@ -9,4 +9,11 @@
 # no-op), tag the devices with `uaccess`. systemd-logind then grants the
 # active local session user an ACL on the node — the same mechanism that
 # already makes /dev/uinput writable.
+#
+# The `70-` prefix matters! 71-seat.rules and 73-seat-late.rules only act on
+# devices that already carry the `uaccess` tag when they run: 71 adds the
+# `seat` tag logind needs to manage the device, 73 runs the builtin that
+# applies the ACL. `70-` sorts before both. As `99-` (the original name) the
+# tag was set too late — no seat tag, no ACL — so kanata could not open the
+# keyboard.
 SUBSYSTEM=="input", ENV{ID_VENDOR_ID}=="3434", ENV{ID_INPUT_KEYBOARD}=="1", TAG+="uaccess"

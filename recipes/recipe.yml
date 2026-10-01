@@ -143,9 +143,11 @@ modules:
   # (same approach as kubectx/stern above) rather than depending on Terra.
   # From linux-binaries-x64.zip we install `kanata_linux_x64` — the build
   # WITHOUT the `cmd` feature, so key remaps can never shell out.
-  # The udev rule at files/system/etc/udev/rules.d/99-keychron-uaccess.rules
+  # The udev rule at files/system/etc/udev/rules.d/70-keychron-uaccess.rules
   # grants the active user access to Keychron keyboards so kanata can read
-  # them without needing the `input` group.
+  # them without needing the `input` group. It must keep the `70-` prefix so
+  # it runs before 71-seat.rules, which turns the `uaccess` tag into a
+  # logind-managed ACL.
   # ---------------------------------------------------------------------
   - type: dnf
     install:
