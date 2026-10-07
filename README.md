@@ -270,6 +270,16 @@ under the hood it's a wrapper around
   daemonizes and returns — a plain `Type=simple` unit would think it died
   immediately). You'll only see its tray icon if your bar/shell has a
   systray widget enabled — Noctalia has one, just make sure it's on.
+- **Emacs starts as a daemon at login.** The `emacs` RPM is in the image and
+  `/etc/xdg/autostart/emacsclient.desktop` runs `emacsclient -c -a ""` when
+  the Plasma session starts. The `-a ""` fallback starts `emacs --daemon` if
+  none is running and reconnects, then `-c` opens a client frame; later
+  `emacsclient` calls reuse the same daemon. Close a frame with `C-x 5 0`
+  (the daemon stays up) and stop the daemon with
+  `emacsclient -e '(kill-emacs)'`. It is not systemd-supervised — to change
+  that, enable the `emacs.service` user unit instead of this autostart file
+  (not both, since they would race to own the server socket). Users can
+  disable the autostart per account in System Settings → Autostart.
 - Run `bluebuild validate recipes/recipe.yml` and
   `bluebuild build recipes/recipe.yml` locally before pushing, to catch
   mistakes early — see the

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Emacs
+Comment=Start the Emacs daemon and open a frame at login
+Exec=emacsclient -c -a ""
+Terminal=false
+NoDisplay=true
