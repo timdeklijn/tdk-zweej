@@ -29,8 +29,8 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 - Obsidian — via Flatpak (note-taking app; Obsidian publishes no official
   RPM, and Flatpak is its only first-party Linux package besides
   Snap/AppImage)
-- Zed editor, opencode, and Determinate Nix — all installed at runtime, not
-  baked into the image (see notes below)
+- Zed editor, opencode, Pi, and Determinate Nix — all installed at runtime,
+  not baked into the image (see notes below)
 
 ## 1. Set this up as your own repo
 
@@ -254,6 +254,18 @@ under the hood it's a wrapper around
   `tdk-zweej managed` block, then symlinks `~/.opencode/bin/opencode` into
   `~/.local/bin` — where Zed's installer also lands, and which is already
   on PATH.
+  Pi follows the same pattern for the same reason: it's a per-user install
+  that self-updates (its managed install lives under
+  `~/.pi/agent/install` and updates with `pi update`), so
+  `pi-installer.service` (a user unit) runs Pi's installer on first login,
+  once per user, then symlinks `~/.pi/agent/bin/pi` into `~/.local/bin` the
+  same way. The installer only prompts and edits shell profiles when a
+  terminal is attached, so `~/.zshrc` stays under the `tdk-zweej managed`
+  block. One real difference from opencode and Zed: Pi's installer needs
+  Node.js 22.19+ and npm, so the image bakes in `nodejs24-bin` and
+  `nodejs24-npm-bin` — Fedora 44 ships Node as parallel-installable version
+  streams, and only the `-bin` subpackages put `node`/`npm`/`npx` on PATH.
+  Pi itself is still not baked in.
 - If you're on Fedora 44+ and don't need flakes/Determinate's extras, the
   native `nix` dnf package is a simpler build-time alternative to the
   first-boot installer — just add it to the main `dnf` module instead.

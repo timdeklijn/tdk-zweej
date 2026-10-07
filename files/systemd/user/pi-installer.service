@@ -1,0 +1,19 @@
+[Unit]
+Description=Install Pi on first login
+# Skip if it's already installed for this user
+ConditionPathExists=!%h/.pi/agent/bin/pi
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Node.js + npm come from the image (nodejs24-bin/nodejs24-npm-bin), so run
+# against /usr/bin instead of any Nix-profile Node. With no terminal attached
+# the installer never prompts and never edits shell profiles. It installs a
+# managed Pi under ~/.pi/agent/install (updated later with `pi update`) and
+# the symlink into ~/.local/bin puts pi on PATH the same way Zed and
+# opencode do.
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/bash -c '/usr/bin/curl -fsSL https://pi.dev/install.sh | /usr/bin/bash && test -x "$HOME/.pi/agent/bin/pi" && mkdir -p "$HOME/.local/bin" && ln -sf "$HOME/.pi/agent/bin/pi" "$HOME/.local/bin/pi"'
+
+[Install]
+WantedBy=default.target

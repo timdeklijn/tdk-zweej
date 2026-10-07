@@ -28,6 +28,18 @@ modules:
         - zoxide
 
   # ---------------------------------------------------------------------
+  # Node.js — required only by pi-installer.service (Pi's installer needs
+  # Node.js 22.19+ and npm; Pi itself is not baked in). Fedora 44 splits Node
+  # into parallel-installable version streams, and only the -bin subpackages
+  # put /usr/bin/node and /usr/bin/npm/npx on PATH.
+  # ---------------------------------------------------------------------
+  - type: dnf
+    install:
+      packages:
+        - nodejs24-bin
+        - nodejs24-npm-bin
+
+  # ---------------------------------------------------------------------
   # Local Kubernetes development
   # Podman is provided by the uBlue base image. kind uses it rootlessly,
   # so no Docker daemon or host-level Kubernetes service is needed.
@@ -247,7 +259,7 @@ modules:
   # ---------------------------------------------------------------------
   # Enable services
   # (The determinate-nix-installer.service, zed-installer.service,
-  # opencode-installer.service, dropbox.service,
+  # opencode-installer.service, pi-installer.service, dropbox.service,
   # set-default-shell-zsh.service, and zsh-extras.service
   # units live under files/systemd/{system,user}/ — the systemd module
   # below picks them up automatically and copies them into
@@ -268,6 +280,7 @@ modules:
       enabled:
         - zed-installer.service # runs on login, skips itself once ~/.local/bin/zed exists
         - opencode-installer.service # runs on login, skips itself once ~/.opencode/bin/opencode exists
+        - pi-installer.service # runs on login, skips itself once ~/.pi/agent/bin/pi exists; uses the image's Node.js
         - dropbox.service # starts the sync daemon + tray icon on login
         - zsh-extras.service # direnv hook, starship init line, atuin — first login only
 
