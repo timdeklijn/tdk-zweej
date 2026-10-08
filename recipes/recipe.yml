@@ -135,6 +135,29 @@ modules:
         - kdenlive
 
   # ---------------------------------------------------------------------
+  # LibreOffice — Writer + Calc only, native RPMs. Same reasoning as
+  # VLC/Kdenlive: Fedora's own repos at current upstream versions, no
+  # third-party repo to maintain, and the Flatpak would pull the ~500 MiB
+  # freedesktop.org runtime the image doesn't otherwise carry (Kinoite
+  # only ships KDE runtimes). Writer + Calc cover reading/editing docx
+  # and xlsx; no Impress/Base/Draw, so no bloat beyond what's asked for.
+  # Weak deps off: they'd add libreoffice-help-en (+~30 MiB) plus a pile
+  # of dictionaries, langpacks and assorted GUI extras. Measured in a
+  # Fedora 44 container: 11 packages, ~346 MiB installed, dominated by
+  # libreoffice-core (~303 MiB). libreoffice-kf6 is the Qt6/KF6 VCL
+  # plugin, so LO renders with native KDE dialogs and widget style — the
+  # base image's Qt6/KF6 runtime is already present.
+  # Headless use works out of the box: soffice --headless --convert-to.
+  # ---------------------------------------------------------------------
+  - type: dnf
+    install:
+      install-weak-deps: false
+      packages:
+        - libreoffice-writer
+        - libreoffice-calc
+        - libreoffice-kf6
+
+  # ---------------------------------------------------------------------
   # Ghostty, via Terra
   # (Zed is intentionally NOT baked in here — see the zed-installer.service
   # user unit below, which runs Zed's own install script on first login)

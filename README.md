@@ -169,6 +169,20 @@ under the hood it's a wrapper around
   Flathub as a system remote, so the `default-flatpaks` module here just
   adds Steam to it; it installs (and self-updates) on boot rather than
   being tied to OS image rebuilds.
+- **LibreOffice is a native RPM, chosen the same way as VLC and Kdenlive** —
+  only Writer and Calc are installed, since the goal is reading/editing docx
+  and xlsx files rather than a full office suite. Fedora's own repos carry it
+  at current upstream versions, so the Flatpak (which would pull the ~500 MiB
+  freedesktop.org runtime the image doesn't carry) buys nothing. Weak
+  dependencies are disabled in the module — they'd add help packs,
+  dictionaries, and langpacks — leaving a measured ~346 MiB across 11
+  packages, dominated by `libreoffice-core`. The `libreoffice-kf6` package
+  supplies the Qt6/KF6 VCL plugin, so LibreOffice renders with native KDE
+  dialogs and widget style. Headless conversion works out of the box:
+  ```bash
+  soffice --headless --convert-to pdf report.docx
+  soffice --headless --convert-to csv sheet.xlsx
+  ```
 - **VLC and Kdenlive are native RPMs, not Flatpaks** — the opposite of
   Steam, for concrete reasons rather than preference. Both are in Fedora's
   own repos at the same versions as upstream/Flathub (VLC 3.0.23,
