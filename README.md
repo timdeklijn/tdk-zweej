@@ -9,6 +9,10 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 - Sublime Text and Sublime Merge
 - VLC and Kdenlive — media player and video editor, as native RPMs rather
   than Flatpaks (see notes below)
+- Firefox with working H.264 video playback — the base image's `noopenh264`
+  stub is replaced with Cisco's real `openh264` codec plus the
+  `mozilla-openh264` Firefox plugin and `gstreamer1-plugin-openh264`
+  (see notes below)
 - Brave Browser
 - 1Password (desktop app + `op` CLI)
 - Dropbox
@@ -183,6 +187,16 @@ under the hood it's a wrapper around
   soffice --headless --convert-to pdf report.docx
   soffice --headless --convert-to csv sheet.xlsx
   ```
+- **Firefox gets real H.264 playback** — Fedora Atomic images ship
+  `noopenh264`, a stub that satisfies the `libopenh264.so.8` dependency
+  but decodes nothing, leaving Firefox unable to play H.264 video. The
+  image instead installs Cisco's real `openh264` codec (from the
+  `fedora-cisco-openh264` repo, enabled by default in Fedora's repos),
+  which `Obsoletes` the stub so dnf replaces it in the same transaction —
+  the build-time equivalent of `rpm-ostree override remove noopenh264
+  --install openh264 ...` on a live system. `mozilla-openh264` is the
+  Firefox GMP plugin that loads it, and `gstreamer1-plugin-openh264`
+  covers GStreamer apps.
 - **VLC and Kdenlive are native RPMs, not Flatpaks** — the opposite of
   Steam, for concrete reasons rather than preference. Both are in Fedora's
   own repos at the same versions as upstream/Flathub (VLC 3.0.23,
