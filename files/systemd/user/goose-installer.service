@@ -1,0 +1,21 @@
+[Unit]
+Description=Install goose CLI on first login
+# Skip if it's already installed for this user
+ConditionPathExists=!%h/.local/bin/goose
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Runs upstream's download_cli.sh, which drops a single static binary into
+# $GOOSE_BIN_DIR (default ~/.local/bin) — nothing is baked into the image,
+# and `goose update` can later rewrite that binary in place. CONFIGURE=false
+# skips the interactive provider setup; there is no TTY here anyway, and
+# provider config is shared with the Desktop app in ~/.config/goose.
+# PATH is set first so it already contains ~/.local/bin: that suppresses the
+# script's "not in your PATH" fallback, which would otherwise append an
+# export line to ~/.zshrc — a file owned by the `tdk-zweej managed` block
+# written by setup-zsh-extras.sh.
+ExecStart=/usr/bin/bash -c 'export PATH=/usr/local/bin:/usr/bin:/bin:$HOME/.local/bin; /usr/bin/curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | CONFIGURE=false /usr/bin/bash'
+
+[Install]
+WantedBy=default.target

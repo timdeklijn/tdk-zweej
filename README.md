@@ -21,6 +21,8 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
   kustomize, and yq; use rootless Podman as kind's provider
 - Godot Engine — native RPM (GDScript build; headless-capable as
   `godot --headless`)
+- goose — AI agent: Desktop (GUI) baked in from the newest upstream RPM
+  at build time, CLI installed per-user at runtime
 - [uupd](https://github.com/ublue-os/uupd) — unified auto-updater for the OS image + Flatpaks, on a daily-ish timer
 - zsh, set as the default login shell for real user accounts, with the
   [Starship prompt](https://starship.rs/) and [direnv](https://direnv.net/)'s
@@ -33,8 +35,8 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 - Obsidian — via Flatpak (note-taking app; Obsidian publishes no official
   RPM, and Flatpak is its only first-party Linux package besides
   Snap/AppImage)
-- Zed editor, opencode, Pi, and Determinate Nix — all installed at runtime,
-  not baked into the image (see notes below)
+- Zed editor, opencode, Pi, the goose CLI, and Determinate Nix — all
+  installed at runtime, not baked into the image (see notes below)
 
 ## 1. Set this up as your own repo
 
@@ -294,6 +296,30 @@ under the hood it's a wrapper around
   `nodejs24-npm-bin` — Fedora 44 ships Node as parallel-installable version
   streams, and only the `-bin` subpackages put `node`/`npm`/`npx` on PATH.
   Pi itself is still not baked in.
+- **goose is split in two: Desktop baked in, CLI per-user.** There is no
+  goose dnf repo and no Flathub listing (upstream publishes only a `.deb`,
+  an `.rpm` and a Flatpak *bundle* as release assets), so the GUI is
+  installed from upstream's release RPM. No version is pinned: every build
+  resolves the newest release, which means your nightly CI + `uupd` is what
+  advances the GUI. The tag is read from the `/releases/latest` redirect
+  rather than the GitHub API, so CI never trips the unauthenticated rate
+  limit, and because upstream publishes no checksums the build logs the
+  SHA-256 of the RPM it installed instead of verifying one. That is the
+  trade: reproducible builds gave way to tracking upstream — worth knowing,
+  and reversible by pinning the version and hash again. Note the upstream
+  repo moved from `block/goose` to `aaif-goose/goose`. It costs ~146 MiB
+  download / ~515 MiB installed (it's Electron).
+  The GUI does not update itself — Electron auto-update needs an AppImage —
+  so new GUI versions arrive through the nightly rebuild, not from inside
+  the app.
+  The CLI follows the Zed/opencode/Pi pattern instead:
+  `goose-installer.service` (a user unit) runs upstream's `download_cli.sh`
+  on first login, once per user, into `~/.local/bin/goose` — deliberately,
+  because `goose update` rewrites its own binary and `/usr` is read-only.
+  Both halves share the same provider/model config in `~/.config/goose`, so
+  configuring one configures the other. Neither prompts during the build or
+  first login: run `goose configure` (or use the Desktop welcome screen)
+  once to pick a provider.
 - If you're on Fedora 44+ and don't need flakes/Determinate's extras, the
   native `nix` dnf package is a simpler build-time alternative to the
   first-boot installer — just add it to the main `dnf` module instead.

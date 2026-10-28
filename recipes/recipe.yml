@@ -286,6 +286,50 @@ modules:
         - tailscale
 
   # ---------------------------------------------------------------------
+  # goose (AI agent) — desktop GUI and CLI are installed two different ways.
+  #
+  # Desktop: upstream publishes it only as a GitHub release asset (no dnf
+  # repo, no Flathub listing, and the RPM is unsigned). No version is
+  # pinned: each build resolves the newest upstream release, so a nightly
+  # rebuild (CI + uupd) is what advances the GUI. The tag comes from the
+  # /releases/latest redirect rather than the GitHub API, so nightly CI
+  # never trips the 60-requests/hour unauthenticated rate limit.
+  # Nothing can be verified against a known-good hash — upstream publishes
+  # no checksums — so the SHA-256 of the downloaded RPM is echoed into the
+  # build log instead, which keeps it auditable. Trade-off worth knowing:
+  # builds are no longer bit-reproducible against a fixed goose version. If
+  # that ever matters more than tracking upstream, pin again by putting the
+  # version in the URL plus a `sha256sum --check` line (as kubectx/stern/
+  # kanata above do).
+  # The asset name embeds the version (Goose-<ver>-1.x86_64.rpm), so if
+  # upstream changes its packaging the build fails loudly rather than
+  # silently shipping something stale.
+  # dnf resolves the rest: gtk3, nss, at-spi2-core, libdrm, xdg-utils,
+  # libnotify, libxcb and mesa-libgbm — all already present in this image.
+  # The RPM ships /usr/bin/Goose plus
+  # /usr/share/applications/Goose.desktop, so it lands in the app menu.
+  # Cost: ~146 MiB download, ~515 MiB installed (Electron). The -vulkan
+  # variant is a separate asset; this is the standard build.
+  #
+  # CLI: NOT baked in — goose-installer.service (a user unit, below) runs
+  # upstream's download_cli.sh on first login. Same reasoning as Zed /
+  # opencode / Pi further down: it is a per-user install that self-updates
+  # via `goose update`, which needs to rewrite its own binary and therefore
+  # cannot live under the read-only /usr.
+  # ---------------------------------------------------------------------
+  - type: containerfile
+    snippets:
+      - >-
+        RUN GOOSE_TAG=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/aaif-goose/goose/releases/latest | sed 's|.*/tag/||')
+        && GOOSE_VER=${GOOSE_TAG#v}
+        && GOOSE_URL="https://github.com/aaif-goose/goose/releases/download/$GOOSE_TAG/Goose-$GOOSE_VER-1.x86_64.rpm"
+        && curl -fsSL -o /tmp/goose.rpm "$GOOSE_URL"
+        && echo "goose $GOOSE_TAG sha256: $(sha256sum /tmp/goose.rpm | cut -d' ' -f1)"
+        && dnf -y install /tmp/goose.rpm
+        && dnf clean all
+        && rm -f /tmp/goose.rpm
+
+  # ---------------------------------------------------------------------
   # Config overrides and helper scripts shipped into their target directories
   # (see files/system/). Keep these as separate copies because /usr/local is a
   # special path in the base image and cannot be written by this module.
@@ -302,7 +346,8 @@ modules:
   # ---------------------------------------------------------------------
   # Enable services
   # (The determinate-nix-installer.service, zed-installer.service,
-  # opencode-installer.service, pi-installer.service, dropbox.service,
+  # opencode-installer.service, pi-installer.service,
+  # goose-installer.service, dropbox.service,
   # set-default-shell-zsh.service, and zsh-extras.service
   # units live under files/systemd/{system,user}/ — the systemd module
   # below picks them up automatically and copies them into
@@ -324,6 +369,7 @@ modules:
         - zed-installer.service # runs on login, skips itself once ~/.local/bin/zed exists
         - opencode-installer.service # runs on login, skips itself once ~/.opencode/bin/opencode exists
         - pi-installer.service # runs on login, skips itself once ~/.pi/agent/bin/pi exists; uses the image's Node.js
+        - goose-installer.service # runs on login, skips itself once ~/.local/bin/goose exists; Desktop comes from the RPM
         - dropbox.service # starts the sync daemon + tray icon on login
         - zsh-extras.service # direnv hook, starship init line, atuin — first login only
 
