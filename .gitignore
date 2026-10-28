@@ -5,3 +5,4 @@ cosign.private
 *.iso-CHECKSUM
 .cosign.key
 .direnv/
+.bluebuild-scripts_*
