@@ -178,6 +178,18 @@ modules:
         - libreoffice-kf6
 
   # ---------------------------------------------------------------------
+  # kitty — native RPM from Fedora's own repos (no third-party repo
+  # needed, unlike Ghostty below). The RPM ships both `kitty` and `kitten`
+  # plus a desktop entry, so it lands in the app menu as-is. Fedora tracks
+  # upstream closely; the image already carries the fonts and GL stack it
+  # wants, so the marginal size is the package itself.
+  # ---------------------------------------------------------------------
+  - type: dnf
+    install:
+      packages:
+        - kitty
+
+  # ---------------------------------------------------------------------
   # Ghostty, via Terra
   # (Zed is intentionally NOT baked in here — see the zed-installer.service
   # user unit below, which runs Zed's own install script on first login)
