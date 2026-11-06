@@ -6,3 +6,4 @@ cosign.private
 .cosign.key
 .direnv/
 .bluebuild-scripts_*
+/.bluebuild-scripts_*
