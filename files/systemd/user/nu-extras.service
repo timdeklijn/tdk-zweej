@@ -1,0 +1,11 @@
+[Unit]
+# Regenerates Nushell's starship autoload file when nu or starship changes
+# version. No network needed — starship is in the image.
+Description=Wire up starship for Nushell (regenerated when nu or starship changes)
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/setup-nu-extras.sh
+
+[Install]
+WantedBy=default.target

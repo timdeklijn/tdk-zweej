@@ -179,8 +179,19 @@ under the hood it's a wrapper around
     `files/system/etc/shells` first.
   - **Only `nu` is installed, none of the bundled `nu_plugin_*` binaries.**
     Add them to the tar member list if you want `plugin add` targets.
-  - **No dotfile wiring.** Unlike zsh, `zsh-extras.service` doesn't touch
-    `~/.config/nushell/`; starship/direnv init lines for nu are yours to add.
+  - **starship is wired by `nu-extras.service`, not by config.** starship's
+    nu integration isn't a config line but a generated file: `starship init nu`
+    emits a script that hardcodes the starship path and probes nu features
+    (`job list`, `term size`), and nushell only autoloads from
+    `$nu.vendor-autoload-dirs` — which includes
+    `~/.local/share/nushell/vendor/autoload` but is per-user, so it can't be
+    baked into the image. The unit writes that file and stamps the nu/starship
+    versions it was generated from; it runs at every login and exits
+    immediately unless one of them changed, so a `uupd` pull that bumps either
+    regenerates it instead of leaving a stale file that fails quietly.
+  - **Nothing else is wired for nu.** `zsh-extras.service` only manages
+    `~/.zshrc`, so direnv, zoxide, atuin and the `~/.local/bin` / `~/.atuin/bin`
+    PATH entries are yours to add to `~/.config/nushell/{env,config}.nu`.
 - **Steam** comes from Flathub rather than as a native RPM — the standard,
   well-supported way to run it on Fedora Atomic. `kinoite-main` already ships
   Flathub as a system remote, so the `default-flatpaks` module here just
