@@ -25,6 +25,8 @@ A custom atomic Fedora image built with [BlueBuild](https://blue-build.org/), ba
 - zsh, set as the default login shell for real user accounts, with the
   [Starship prompt](https://starship.rs/) and [direnv](https://direnv.net/)'s
   hook wired in
+- [nushell](https://www.nushell.sh/) (`nu`) — pinned upstream release, not the
+  Fedora package (Fedora is stuck at 0.99.1; see notes below)
 - [atuin](https://atuin.sh/) — better shell history (SQLite-backed, searchable)
 - Steam — via Flatpak
 - Signal — via Flatpak
@@ -138,25 +140,47 @@ under the hood it's a wrapper around
   like any shell change, it takes effect on next login, not the current
   session.
 - **zsh extras:** direnv, zoxide, and starship are baked into the image as
-  packages (starship comes via the `atim/starship` COPR — it
-  was dropped from Fedora's own repos after F36). At first login, the
-  `zsh-extras.service` appends one clearly marked, project-managed block to
-  `~/.zshrc` containing the user-local PATH and init lines for direnv, zoxide,
-  and starship. It never overwrites unrelated user configuration. Atuin is
-  installed per user and initialized from the same managed block when present.
-  direnv and starship are both baked into
-  the image as packages (starship comes via the `atim/starship` COPR — it
-  was dropped from Fedora's own repos after F36). What still has to happen
-  per-user, at first login, is wiring their init lines into `~/.zshrc`
-  (there's no build-time equivalent of "append a line to every future
-  user's dotfile"), plus installing atuin itself, which is a genuinely
-  per-user binary. All three are handled by `zsh-extras.service`, a
-  first-login user unit — same reasoning as Zed/Dropbox for keeping this
-  runtime rather than build-time. The actual logic lives in
+  packages (starship comes via the `atim/starship` COPR — it was dropped from
+  Fedora's own repos after F36). What still has to happen per-user, at first
+  login, is wiring their init lines into `~/.zshrc` (there's no build-time
+  equivalent of "append a line to every future user's dotfile"), plus
+  installing atuin itself, which is a genuinely per-user binary.
+  `zsh-extras.service` — a first-login user unit, same reasoning as
+  Zed/Dropbox for keeping this runtime rather than build-time — appends one
+  clearly marked, project-managed block to `~/.zshrc` holding the user-local
+  PATH (`~/.local/bin`, `~/.atuin/bin`) and the init lines for direnv,
+  zoxide and starship, then installs atuin if `~/.atuin/bin/atuin` is absent
+  and initializes it from that same block. It never overwrites unrelated user
+  configuration. The actual logic lives in
   `files/system/usr/bin/setup-zsh-extras.sh` if you want to add more
-  later. It marks itself done in `~/.cache/zsh-extras-done` so it's a
-  no-op after the first successful run, but retries on next login if it
-  fails partway (e.g. no network yet).
+  later. A `~/.cache/zsh-extras-done` marker makes it a no-op after the first
+  successful run, but it retries on next login if it fails partway (e.g. no
+  network yet).
+- **nushell is a pinned upstream binary, not Fedora's `nushell` RPM.** Fedora
+  still ships 0.99.1 in both F44 and F45, while upstream is at 0.116.1
+  (Oct 2026) — about a year and 17 releases behind, and nushell's command
+  surface and config format move between releases, so the RPM would be a
+  shell that no longer matches the current docs. The recipe therefore
+  installs the official `x86_64-unknown-linux-gnu` tarball and verifies it
+  against the hash from upstream's published `SHA256SUMS` (same pattern as
+  kubectx/stern/kanata). Consequences worth knowing:
+  - **It only moves when you bump it.** Version and hash are pinned in
+    `recipes/recipe.yml`; nothing updates `nu` on its own. Bump all five
+    occurrences (two in the URL, the tar member, the install source, the
+    hash) from the release page.
+  - **The gnu build's only shared libs are `libz`, `libgcc_s`, `libm` and
+    `libc`** — all already in the image, so no openssl or LDAP stack gets
+    pulled in. It is not a static musl binary; a musl variant also exists
+    upstream if that ever matters.
+  - **`/usr/bin/nu` is not in `/etc/shells`**, so `chsh -s /usr/bin/nu`
+    will refuse. That's deliberate — zsh stays the default via
+    `set-default-shell-zsh.service`. Install nushell as a login shell only
+    if you actually want to replace zsh, and add it to `/etc/shells` via
+    `files/system/etc/shells` first.
+  - **Only `nu` is installed, none of the bundled `nu_plugin_*` binaries.**
+    Add them to the tar member list if you want `plugin add` targets.
+  - **No dotfile wiring.** Unlike zsh, `zsh-extras.service` doesn't touch
+    `~/.config/nushell/`; starship/direnv init lines for nu are yours to add.
 - **Steam** comes from Flathub rather than as a native RPM — the standard,
   well-supported way to run it on Fedora Atomic. `kinoite-main` already ships
   Flathub as a system remote, so the `default-flatpaks` module here just
