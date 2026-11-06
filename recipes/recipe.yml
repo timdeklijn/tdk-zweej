@@ -73,22 +73,6 @@ modules:
         && rm /tmp/stern.tar.gz
 
   # ---------------------------------------------------------------------
-  # Godot Engine — native RPM. Fedora's package is at the exact current
-  # upstream stable (4.7.2, packaged by Godot's own release manager), so
-  # it matches what the Flatpak offers with no sandbox in the way —
-  # which matters for headless CLI use (`godot --headless`). GDScript
-  # build only; Fedora does not package the C#/.NET variant.
-  # Weak deps off: godot Recommends blender + oidn, which would add
-  # ~2 GiB of downloads / ~6 GiB installed for a tool we don't otherwise
-  # need — without them the install is ~149 MiB / ~466 MiB.
-  # ---------------------------------------------------------------------
-  - type: dnf
-    install:
-      install-weak-deps: false
-      packages:
-        - godot
-
-  # ---------------------------------------------------------------------
   # Sublime Text + Sublime Merge
   # ---------------------------------------------------------------------
   - type: dnf
@@ -178,11 +162,10 @@ modules:
         - libreoffice-kf6
 
   # ---------------------------------------------------------------------
-  # kitty — native RPM from Fedora's own repos (no third-party repo
-  # needed, unlike Ghostty below). The RPM ships both `kitty` and `kitten`
-  # plus a desktop entry, so it lands in the app menu as-is. Fedora tracks
-  # upstream closely; the image already carries the fonts and GL stack it
-  # wants, so the marginal size is the package itself.
+  # kitty — native RPM from Fedora's own repos. The RPM ships both `kitty`
+  # and `kitten` plus a desktop entry, so it lands in the app menu as-is.
+  # Fedora tracks upstream closely; the image already carries the fonts and
+  # GL stack it wants, so the marginal size is the package itself.
   # ---------------------------------------------------------------------
   - type: dnf
     install:
@@ -190,24 +173,10 @@ modules:
         - kitty
 
   # ---------------------------------------------------------------------
-  # Ghostty, via Terra
-  # (Zed is intentionally NOT baked in here — see the zed-installer.service
-  # user unit below, which runs Zed's own install script on first login)
-  # ---------------------------------------------------------------------
-  - type: dnf
-    repos:
-      files:
-        # Terra's repo file is maintained separately from its package host.
-        - https://raw.githubusercontent.com/terrapkg/subatomic-repos/main/terra.repo
-    install:
-      skip-unavailable: true
-      packages:
-        - ghostty
-
-  # ---------------------------------------------------------------------
   # kanata — key remapper for home-row mods.
   # Not in Fedora's own repos, so pin and verify the upstream release binary
-  # (same approach as kubectx/stern above) rather than depending on Terra.
+  # (same approach as kubectx/stern above) rather than adding a third-party
+  # repo or COPR for it.
   # From linux-binaries-x64.zip we install `kanata_linux_x64` — the build
   # WITHOUT the `cmd` feature, so key remaps can never shell out.
   # The udev rule at files/system/etc/udev/rules.d/70-keychron-uaccess.rules
