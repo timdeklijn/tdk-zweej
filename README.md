@@ -179,19 +179,65 @@ under the hood it's a wrapper around
     `files/system/etc/shells` first.
   - **Only `nu` is installed, none of the bundled `nu_plugin_*` binaries.**
     Add them to the tar member list if you want `plugin add` targets.
-  - **starship is wired by `nu-extras.service`, not by config.** starship's
-    nu integration isn't a config line but a generated file: `starship init nu`
-    emits a script that hardcodes the starship path and probes nu features
-    (`job list`, `term size`), and nushell only autoloads from
-    `$nu.vendor-autoload-dirs` — which includes
-    `~/.local/share/nushell/vendor/autoload` but is per-user, so it can't be
-    baked into the image. The unit writes that file and stamps the nu/starship
-    versions it was generated from; it runs at every login and exits
-    immediately unless one of them changed, so a `uupd` pull that bumps either
-    regenerates it instead of leaving a stale file that fails quietly.
-  - **Nothing else is wired for nu.** `zsh-extras.service` only manages
-    `~/.zshrc`, so direnv, zoxide, atuin and the `~/.local/bin` / `~/.atuin/bin`
-    PATH entries are yours to add to `~/.config/nushell/{env,config}.nu`.
+  - **`nu-extras.service` wires the shell up, at login.** Two of the pieces
+    can't live in the image, so a user unit does them per-user:
+    - **Generated init scripts.** Nushell has no `eval`, so `starship init nu`
+      (a script that hardcodes the starship path and probes nu features:
+      `job list`, `term size`) and `zoxide init nushell` (commands plus an
+      `env_change.PWD` hook) have to exist as files. They land in
+      `~/.local/share/nushell/vendor/autoload/starship.nu` (the only path
+      nushell autoloads without a config entry) and
+      `~/.cache/tdk-zweej/zoxide.nu` (sourced from `config.nu`). The unit
+      stamps the nu/starship/zoxide versions they were generated from and
+      rewrites them only when one moves, so a `uupd` pull can't leave a stale
+      file that fails quietly — steady state is two greps and three
+      `--version` calls.
+    - **Managed blocks** in `~/.config/nushell/config.nu` (the zoxide
+      `source`, `alias vim = nvim`, and the direnv hook — nvim comes from the
+      Nix profile, not the image, and nu aliases resolve lazily, so a missing
+      nvim fails only when `vim` is actually typed rather than at shell
+      startup) and `env.nu` (prepends `~/.local/bin` and `~/.atuin/bin` to
+      `PATH`, guarded so repeat logins can't stack duplicates — those are
+      where zed, goose, opencode and atuin install). Same contract as the zsh
+      block: append once, marked `# >>> tdk-zweej managed >>>`, never
+      overwrite anything else, no-op once present. A block you wrote by hand
+      is detected and left untouched.
+  - **Nu gets a different prompt style from zsh, on purpose.** starship reads
+    `$STARSHIP_CONFIG`, so `env.nu` points nu's starship at
+    `~/.config/starship-nu.toml` while zsh keeps the stock look (no
+    `~/.config/starship.toml` exists, and nothing exports `STARSHIP_CONFIG`
+    there, so the two shells ignore each other's styling). The file ships in
+    the image at `files/system/usr/share/tdk-zweej/starship-nu.toml` and the
+    unit copies it into `$HOME` only if it's missing — after that it is yours,
+    so an image bump never clobbers your tweaks. Delete it and log in again to
+    restore it, or delete it and drop the `STARSHIP_CONFIG` lines to fall back
+    to starship's default prompt.
+    - **It's tokyo-night's layout, recoloured green.** Same segment order and
+      light→dark ramp, six greens: `#95d5b2` (leading bar, plus the text inside
+      the git/language segments), `#40916c` (directory), `#2d6a4f` (git),
+      `#1b4332` (languages), `#081c15` (time), `#e9f5ec` (directory text).
+    - **Two things were fixed rather than recoloured.** tokyo-night's leading
+      segment is `dev-apple` (U+E711) — an Apple logo on every OS — so it is
+      `dev-linux` (U+E712) here, same Devicons set as the glyph it replaced, so
+      any font that drew the apple draws this, with identical metrics. And
+      `#769ff0` did double duty upstream as both the `$directory` background
+      *and* the text colour inside the git/language segments; with green those
+      two roles need different lightness, so the inner text uses the pale mint
+      while the separators keep the medium green (otherwise the text sits at
+      ~1.8:1 against its own background).
+    - The icons and ``/`` separators need a Nerd Font — kitty already has one.
+  - **direnv hooks via `pre_prompt`, not `env_change.PWD`.** The cookbook's
+    `env_change.PWD` recipe only ever *loads*: that hook runs before `$env.PWD`
+    is updated, so `direnv export json` sees the directory you just left, and
+    nothing is reverted when you `cd` out — variables and PATH entries leak into
+    the next project. The `pre_prompt` variant (same page, same code) runs after
+    the change and both loads and unloads: inside a dir with an `.envrc` the
+    variable and PATH entry appear, and after `cd` out both are gone. The cost
+    is one `direnv export json` per prompt, which is the trade the cookbook
+    itself flags.
+  - **atuin is still unwired for nu.** It would need `atuin init nu` written to
+    a file and sourced, the same treatment starship and zoxide get, plus a guard
+    because the binary only appears after its own first-login installer runs.
 - **Steam** comes from Flathub rather than as a native RPM — the standard,
   well-supported way to run it on Fedora Atomic. `kinoite-main` already ships
   Flathub as a system remote, so the `default-flatpaks` module here just

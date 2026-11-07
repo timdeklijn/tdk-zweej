@@ -377,7 +377,7 @@ modules:
         - goose-installer.service # runs on login, skips itself once ~/.local/bin/goose exists; Desktop comes from the RPM
         - dropbox.service # starts the sync daemon + tray icon on login
         - zsh-extras.service # direnv hook, starship init line, atuin — first login only
-        - nu-extras.service # starship autoload for nu — regenerated when nu or starship changes
+        - nu-extras.service # nu's starship/zoxide init files + PATH block, refreshed when versions move
 
   # ---------------------------------------------------------------------
   # Final signing module — must be last

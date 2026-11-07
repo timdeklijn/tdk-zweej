@@ -1,7 +1,9 @@
 [Unit]
-# Regenerates Nushell's starship autoload file when nu or starship changes
-# version. No network needed — starship is in the image.
-Description=Wire up starship for Nushell (regenerated when nu or starship changes)
+# Sets up Nushell extras: the generated starship/zoxide init files (rewritten
+# when either binary changes version) and the managed config.nu/env.nu blocks.
+# No network needed — starship and zoxide are in the image.
+Description=Set up Nushell extras (starship autoload, zoxide, PATH)
+
 [Service]
 Type=oneshot
 RemainAfterExit=yes
